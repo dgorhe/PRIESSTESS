@@ -352,8 +352,8 @@ for p in fg bg; do
 done
 
 # Create directory and fasta files for each alphabet
-for c in `cut -f 2- ../annotation_alphabets_header.tab | tail -n 1 | tr '\t' ' '`; do
-    a=`cut -f $c ../annotation_alphabets_header.tab | head -n 1`
+for a in `cut -f 2- ../annotation_alphabets_header.tab | tail -n 1 | tr '\t' ' '`; do
+    c=`cat ../annotation_alphabets_header.tab | tr '\t' '\n' | grep -n "$a" | cut -f 1 -d ":"`
     mkdir $a
     for p in fg bg; do 
         cut -f $c ${p}_alphabet_annotations.tab | \
