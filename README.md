@@ -12,19 +12,30 @@ Laverty, K.U., Jolma, A., Pour, S.E., Zheng, H., Ray, D., Morris, Q.D., Hughes, 
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/username/PRIESSTESS.git
+   git clone https://github.com/dgorhe/PRIESSTESS.git
    cd PRIESSTESS
    ```
-
-2. Create and activate the conda environment:
+   
+2. Ensure the PRIESSTESS code has executable permissions
    ```bash
-   conda env create -f env.yaml
-   conda activate priesstess
+   chmod +x PRIESSTESS PRIESSTESS_scan
+   chmod -R +x bin/
    ```
 
 3. Add PRIESSTESS to your PATH:
    ```bash
    echo "export PATH=\"\$PATH:$(pwd)\"" >> ~/.zshrc
+   ```
+
+4. Make sure changes take effect so that PRIESSTESS is available
+   ```bash
+   source ~/.zshrc
+   ```
+
+5. Create and activate the conda environment
+   ```bash
+   conda env create -f env.yaml
+   conda activate priesstess
    ```
 
 4. Verify installation:
