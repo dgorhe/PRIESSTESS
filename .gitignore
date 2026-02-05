@@ -109,3 +109,6 @@ Thumbs.db
 # Project-specific
 *.pkl
 *.pickle
+
+# Benchmarking and dataset files
+benchmarking_dataset/
