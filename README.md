@@ -8,21 +8,46 @@ Laverty, K.U., Jolma, A., Pour, S.E., Zheng, H., Ray, D., Morris, Q.D., Hughes, 
 
 ## Installation
 
+### Quick Start with Conda (Recommended)
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/username/PRIESSTESS.git
+   cd PRIESSTESS
+   ```
+
+2. Create and activate the conda environment:
+   ```bash
+   conda env create -f env.yaml
+   conda activate priesstess
+   ```
+
+3. Add PRIESSTESS to your PATH:
+   ```bash
+   export PATH="$PATH:$(pwd)"
+   # Add to ~/.bashrc or ~/.zshrc for persistence
+   echo "export PATH=\"\$PATH:$(pwd)\"" >> ~/.bashrc
+   ```
+
+4. Verify installation:
+   ```bash
+   PRIESSTESS --help
+   ```
+
+### Manual Installation
+
 Download PRIESSTESS and add path to main directory to bash profile. Ensure that the directory is named "PRIESSTESS".
 
 ### Requirements
 
-RNAfold (PRIESSTESS was developed with version  2.4.11)
+The conda environment (env.yaml) includes all dependencies. If not using conda, ensure:
+- RNAfold (version 2.4.11 or later)
+- STREME (version 5.3.0 or later)
+- Python 3.8
+- scikit-learn 0.23.2
+- scikit-optimize 0.8.1
 
-STREME (PRIESSTESS was developed with version  5.3.0)
-
-python3 (PRIESSTESS was developed with version 3.8)
-
-sklearn (PRIESSTESS was developed with version 0.23.2)
-
-skopt python package (PRIESSTESS was developed with version  0.8.1)
-
-**Note: A user of PRIESSTESS found that it would run only when the version of sklearn was dropped to 0.22.** See Issue: [#2](/../../issues/2)
+**Important**: PRIESSTESS was tested with scikit-learn 0.23.2. Some users report needing version 0.22 for compatibility. See [Issue #2](/../../issues/2).
 
 ## Usage
 
@@ -112,3 +137,80 @@ The foreground_file and background_file must contain 1 probe sequence per line c
 
   `-noCleanup`  Do not remove intermediate files created by PRIESSTESS. If this flag is not used intermediate files will be removed after usage
 
+## Development
+
+### Setting Up Development Environment
+
+Install with development dependencies using the provided conda environment:
+
+```bash
+conda env create -f env.yaml
+conda activate priesstess
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage report
+pytest --cov=bin --cov-report=html
+
+# Run only fast unit tests (skip slow integration tests)
+pytest -m "not slow"
+```
+
+Test reports will be generated in `htmlcov/index.html`.
+
+### Code Quality
+
+**Format code:**
+```bash
+black bin/
+isort bin/
+```
+
+**Lint code:**
+```bash
+flake8 bin/
+shellcheck PRIESSTESS PRIESSTESS_scan bin/*.sh
+```
+
+### Contributing
+
+Before submitting pull requests:
+1. Ensure all tests pass (`pytest`)
+2. Format code with black/isort
+3. Verify linting passes (flake8, shellcheck)
+4. Update tests if adding new features
+
+## Troubleshooting
+
+### Scikit-learn Compatibility
+
+If you encounter sklearn API errors:
+```bash
+conda install scikit-learn=0.22
+```
+See [Issue #2](/../../issues/2) for details.
+
+### Tool Not Found Errors
+
+Ensure external tools are in your PATH:
+```bash
+which RNAfold  # Should show path to RNAfold
+which streme   # Should show path to STREME
+```
+
+If tools are missing, reinstall the conda environment or manually install:
+- ViennaRNA package (provides RNAfold)
+- MEME suite (provides STREME)
+
+### Tests Failing
+
+Make sure you're in the repository root and have activated the conda environment:
+```bash
+conda activate priesstess
+pytest
+```

@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # Establish package installation location
-#libpath=`whereis PRIESSTESS`
-libpath=/scratch/q/qmorris/klaverty/PRIESSTESS/bin
+libpath=`dirname $(dirname $(which PRIESSTESS_scan))`/bin
 
 #### ARGUMENTS ####
 # -----------------------------------------------------------------------------#
