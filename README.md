@@ -24,9 +24,7 @@ Laverty, K.U., Jolma, A., Pour, S.E., Zheng, H., Ray, D., Morris, Q.D., Hughes, 
 
 3. Add PRIESSTESS to your PATH:
    ```bash
-   export PATH="$PATH:$(pwd)"
-   # Add to ~/.bashrc or ~/.zshrc for persistence
-   echo "export PATH=\"\$PATH:$(pwd)\"" >> ~/.bashrc
+   echo "export PATH=\"\$PATH:$(pwd)\"" >> ~/.zshrc
    ```
 
 4. Verify installation:
