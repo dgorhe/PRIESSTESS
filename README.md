@@ -22,20 +22,30 @@ Before installing PRIESSTESS, you need to have `make` and `gcc` (or a compatible
 
    Follow the prompts in the pop-up window to complete the installation.
 
-2. **Alternatively, install GCC via Homebrew** (if you prefer GCC over clang):
+2. **Install GNU sed and grep via Homebrew** (required for PRIESSTESS):
 
    ```bash
    # Install Homebrew if you don't have it
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-   # Install GCC
+   # Install GNU sed and grep
+   brew install gnu-sed grep
+   ```
+
+   This installs `gsed` (GNU sed) and `ggrep` (GNU grep), which are required because macOS uses BSD versions that lack some features needed by PRIESSTESS.
+
+3. **Optionally, install GCC via Homebrew** (if you prefer GCC over clang):
+
+   ```bash
    brew install gcc
    ```
 
-3. **Verify installation**:
+4. **Verify installation**:
    ```bash
    make --version
    gcc --version  # or clang++ --version if using Xcode tools
+   gsed --version
+   ggrep --version
    ```
 
 #### Linux
