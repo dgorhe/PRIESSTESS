@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Establish package installation location
-libpath=`dirname $(dirname $(which PRIESSTESS_scan))`/bin
+libpath=$(dirname "$(dirname "$(which PRIESSTESS_scan)")")/bin
 
 #### ARGUMENTS ####
 # -----------------------------------------------------------------------------#
@@ -127,25 +127,25 @@ while test $# -gt 0; do
             ;;
         -fg)
             shift
-            if [ ! -f $1 ]; then echo "-fg: file $1 does not exist"; exit 1; fi;
+            if [ ! -f "$1" ]; then echo "-fg: file $1 does not exist"; exit 1; fi;
             if [[ $1 =~ \.gz$ ]]; then 
-                n=`zcat $1 | grep -v "[ACGUN]*" | wc -l`
+                n=$(zcat "$1" | ggrep -v "[ACGUN]*" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-fg: file should only contain: A,C,G,U,N"
                     exit 1
                 fi
-                n=`zcat $1 | wc -l`
+                n=$(zcat "$1" | wc -l)
                 if [[ $n -lt 1000 ]]; then
                     echo "-fg: file should contain at least 1000 sequences"
                     exit 1
                 fi
             else
-                n=`grep -v "[ACGUN]*" $1 | wc -l`
+                n=$(ggrep -v "[ACGUN]*" "$1" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-fg: file should only contain: A,C,G,U,N"
                     exit 1
                 fi
-                n=`cat $1 | wc -l`
+                n=$(wc -l < "$1")
                 if [[ $n -lt 1000 ]]; then
                     echo "-fg: file should contain at least 1000 sequences"
                     exit 1
@@ -156,25 +156,25 @@ while test $# -gt 0; do
             ;;
         -bg)
             shift
-            if [ ! -f $1 ]; then echo "-bg: file $1 does not exist"; exit 1; fi;
+            if [ ! -f "$1" ]; then echo "-bg: file $1 does not exist"; exit 1; fi;
             if [[ $1 =~ \.gz$ ]]; then 
-                n=`zcat $1 | grep -v "[ACGUN]*" | wc -l`
+                n=$(zcat "$1" | ggrep -v "[ACGUN]*" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-bg: file can only contain: A,C,G,U,N"
                     exit 1
                 fi
-                n=`zcat $1 | wc -l`
+                n=$(zcat "$1" | wc -l)
                 if [[ $n -lt 1000 ]]; then
                     echo "-bg: file should contain at least 1000 sequences"
                     exit 1
                 fi
             else
-                n=`grep -v "[ACGUN]*" $1 | wc -l`
+                n=$(ggrep -v "[ACGUN]*" "$1" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-bg: file can only contain: A,C,G,U,N"
                     exit 1
                 fi
-                n=`cat $1 | wc -l`
+                n=$(wc -l < "$1")
                 if [[ $n -lt 1000 ]]; then
                     echo "-bg: file should contain at least 1000 sequences"
                     exit 1
@@ -185,7 +185,7 @@ while test $# -gt 0; do
             ;;
         -o)
             shift
-            if [ ! -d $1 ]; then
+            if [ ! -d "$1" ]; then
                 echo "-o: output directory provided does not exist"
                 exit 1
             fi
@@ -231,7 +231,7 @@ while test $# -gt 0; do
             ;;
         -alph)
             shift
-            n=`echo $1 | wc -c`
+            n=$(echo "$1" | wc -c)
             n=$(( n - 1 ))
             if [[ $n -lt 1 ]]; then 
                 echo "-alph: at leaste one alphabet must be chosen"
@@ -288,3 +288,54 @@ while test $# -gt 0; do
                 exit 1
             fi
             min_width=$1
+            shift
+            ;;
+        -maxw)
+            shift
+            if [[ ! "$1" =~ ^[6-9]$ ]]; then
+                echo "-maxw: Maximum motif width should be between 6 and 9"
+                exit 1
+            fi
+            max_width=$1
+            shift
+            ;;
+        -maxAmotifs)
+            shift
+            if [[ ! "$1" =~ ^[1-9][0-9]?$ ]]; then
+                echo "-maxAmotifs: Number of motifs to use in LR model per"
+                echo "             alphabet should be between 1 and 99"
+                exit 1
+            fi
+            max_motifs=$1
+            shift
+            ;;
+        -scoreN)
+            shift
+            if [[ ! "$1" =~ ^[1-5]$ ]]; then
+                echo "-scoreN: The number of motifs scores to sum must be"
+                echo "           between 1 and 5"
+                exit 1
+            fi
+            N_score=$1
+            shift
+            ;;
+        -predLoss)
+            shift
+            if [[ ! "$1" =~ ^[1-9][0-9]?$ ]]; then
+                echo "-predLoss: The loss of predictive power should be"
+                echo "           between 1 and 99"
+                exit 1
+            fi
+            predict_loss=$1
+            shift
+            ;;
+        -noCleanup)
+            clean="FALSE"
+            shift
+            ;;
+        *)
+            echo "$1 is not a valid argument"
+            exit 1
+              ;;
+    esac
+done

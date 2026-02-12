@@ -16,29 +16,34 @@ Laverty, K.U., Jolma, A., Pour, S.E., Zheng, H., Ray, D., Morris, Q.D., Hughes, 
    cd PRIESSTESS
    ```
    
-2. Ensure the PRIESSTESS code has executable permissions
+2. Compile the `parse_secondary_structure_v2` utility for your system (required; the binary is not distributed since it must be built for your OS and architecture):
+   ```bash
+   make
+   ```
+
+3. Ensure the PRIESSTESS code has executable permissions
    ```bash
    chmod +x PRIESSTESS PRIESSTESS_scan
    chmod -R +x bin/
    ```
 
-3. Add PRIESSTESS to your PATH:
+4. Add PRIESSTESS to your PATH:
    ```bash
    echo "export PATH=\"\$PATH:$(pwd)\"" >> ~/.zshrc
    ```
 
-4. Make sure changes take effect so that PRIESSTESS is available
+5. Make sure changes take effect so that PRIESSTESS is available
    ```bash
    source ~/.zshrc
    ```
 
-5. Create and activate the conda environment
+6. Create and activate the conda environment
    ```bash
    conda env create -f env.yaml
    conda activate priesstess
    ```
 
-4. Verify installation:
+7. Verify installation:
    ```bash
    PRIESSTESS --help
    ```
@@ -48,6 +53,16 @@ Laverty, K.U., Jolma, A., Pour, S.E., Zheng, H., Ray, D., Morris, Q.D., Hughes, 
 Download PRIESSTESS and add path to main directory to bash profile. Ensure that the directory is named "PRIESSTESS".
 
 ### Requirements
+
+- C++ compiler (g++ or clang++) for building `parse_secondary_structure_v2` utility
+
+  **Installing a C++ compiler by system:**
+
+  - **macOS**: Install Xcode Command Line Tools (provides clang++): `xcode-select --install`  
+    Or install GCC via Homebrew: `brew install gcc`
+  - **Ubuntu/Debian**: `sudo apt-get install build-essential`
+  - **Fedora/RHEL/CentOS**: `sudo dnf install gcc-c++` (or `yum install gcc-c++` on older systems)
+  - **Arch Linux**: `sudo pacman -S base-devel`
 
 The conda environment (env.yaml) includes all dependencies. If not using conda, ensure:
 - RNAfold (version 2.4.11 or later)

@@ -110,5 +110,11 @@ Thumbs.db
 *.pkl
 *.pickle
 
+# Platform-specific binary (users must compile for their system via make)
+bin/utils/parse_secondary_structure_v2
+
 # Benchmarking and dataset files
 benchmarking_dataset/
+
+# Visualization outputs
+figures/
