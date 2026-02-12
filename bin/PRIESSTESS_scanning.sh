@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# OS detection: Set gsed and ggrep to appropriate commands
+# On macOS, use GNU versions (gsed/ggrep from Homebrew)
+# On Linux, use standard grep/sed (which are GNU versions)
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    GSED=gsed
+    GGREP=ggrep
+else
+    GSED=sed
+    GGREP=grep
+fi
+
 # Establish package installation location
 libpath=$(dirname "$(dirname "$(which PRIESSTESS_scan)")")/bin
 
@@ -129,7 +140,7 @@ while test $# -gt 0; do
             shift
             if [ ! -f "$1" ]; then echo "-fg: file $1 does not exist"; exit 1; fi;
             if [[ $1 =~ \.gz$ ]]; then 
-                n=$(zcat "$1" | ggrep -v "[ACGUN]*" | wc -l)
+                n=$(zcat "$1" | $GGREP -v "[ACGUN]*" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-fg: file should only contain: A,C,G,U,N"
                     exit 1
@@ -140,7 +151,7 @@ while test $# -gt 0; do
                     exit 1
                 fi
             else
-                n=$(ggrep -v "[ACGUN]*" "$1" | wc -l)
+                n=$($GGREP -v "[ACGUN]*" "$1" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-fg: file should only contain: A,C,G,U,N"
                     exit 1
@@ -158,7 +169,7 @@ while test $# -gt 0; do
             shift
             if [ ! -f "$1" ]; then echo "-bg: file $1 does not exist"; exit 1; fi;
             if [[ $1 =~ \.gz$ ]]; then 
-                n=$(zcat "$1" | ggrep -v "[ACGUN]*" | wc -l)
+                n=$(zcat "$1" | $GGREP -v "[ACGUN]*" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-bg: file can only contain: A,C,G,U,N"
                     exit 1
@@ -169,7 +180,7 @@ while test $# -gt 0; do
                     exit 1
                 fi
             else
-                n=$(ggrep -v "[ACGUN]*" "$1" | wc -l)
+                n=$($GGREP -v "[ACGUN]*" "$1" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-bg: file can only contain: A,C,G,U,N"
                     exit 1

@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# OS detection: Set gsed and ggrep to appropriate commands
+# On macOS, use GNU versions (gsed/ggrep from Homebrew)
+# On Linux, use standard grep/sed (which are GNU versions)
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    GSED=gsed
+    GGREP=ggrep
+else
+    GSED=sed
+    GGREP=grep
+fi
+
 # Establish package installation location
 libpath=$(whereis PRIESSTESS | cut -f 2 -d ' ')
 libpath=${libpath%/PRIESSTESS}
@@ -143,7 +154,7 @@ while test $# -gt 0; do
             exit 1
         fi
         if [[ $1 =~ \.gz$ ]]; then
-            n=$(zcat "$1" | ggrep -v "[ACGUN]*" | wc -l)
+            n=$(zcat "$1" | $GGREP -v "[ACGUN]*" | wc -l)
             if [[ $n -gt 0 ]]; then
                 echo "-fg: file should only contain: A,C,G,U,N"
                 exit 1
@@ -154,7 +165,7 @@ while test $# -gt 0; do
                 exit 1
             fi
         else
-            n=$(ggrep -v "[ACGUN]*" "$1" | wc -l)
+            n=$($GGREP -v "[ACGUN]*" "$1" | wc -l)
             if [[ $n -gt 0 ]]; then
                 echo "-fg: file should only contain: A,C,G,U,N"
                 exit 1
@@ -175,7 +186,7 @@ while test $# -gt 0; do
             exit 1
         fi
         if [[ $1 =~ \.gz$ ]]; then
-            n=$(zcat "$1" | ggrep -v "[ACGUN]*" | wc -l)
+            n=$(zcat "$1" | $GGREP -v "[ACGUN]*" | wc -l)
             if [[ $n -gt 0 ]]; then
                 echo "-bg: file can only contain: A,C,G,U,N"
                 exit 1
@@ -186,7 +197,7 @@ while test $# -gt 0; do
                 exit 1
             fi
         else
-            n=$(ggrep -v "[ACGUN]*" "$1" | wc -l)
+            n=$($GGREP -v "[ACGUN]*" "$1" | wc -l)
             if [[ $n -gt 0 ]]; then
                 echo "-bg: file can only contain: A,C,G,U,N"
                 exit 1
@@ -442,15 +453,15 @@ fi
 # Save sequences in files called fg_seqs.txt and bg_seqs.txt
 # Files are assumed to be gzipped or uncompressed
 if [[ $fgfile =~ \.gz$ ]]; then
-    zcat $fgfile | ggrep -v "N" >${out_dir}/fg_seqs.txt
+    zcat $fgfile | $GGREP -v "N" >${out_dir}/fg_seqs.txt
 else
-    ggrep -v "N" $fgfile >${out_dir}/fg_seqs.txt
+    $GGREP -v "N" $fgfile >${out_dir}/fg_seqs.txt
 fi
 
 if [[ $bgfile =~ \.gz$ ]]; then
-    zcat $bgfile | ggrep -v "N" >${out_dir}/bg_seqs.txt
+    zcat $bgfile | $GGREP -v "N" >${out_dir}/bg_seqs.txt
 else
-    ggrep -v "N" $bgfile >${out_dir}/bg_seqs.txt
+    $GGREP -v "N" $bgfile >${out_dir}/bg_seqs.txt
 fi
 
 # Ensure ability to write to directory and that everything is there
@@ -468,9 +479,9 @@ currdir=$(pwd)
 cd $out_dir
 
 # Deal with windows carriage returns
-gsed 's/\r//g' fg_seqs.txt >fg.tmp
+$GSED 's/\r//g' fg_seqs.txt >fg.tmp
 mv -f fg.tmp fg_seqs.txt
-gsed 's/\r//g' bg_seqs.txt >bg.tmp
+$GSED 's/\r//g' bg_seqs.txt >bg.tmp
 mv -f bg.tmp bg_seqs.txt
 
 ### SAVE ALL ARGUMENT VALUES IN FILE CALLED: PRIESSTESS_arguments.txt
@@ -524,7 +535,7 @@ if [ $alphs == "1" ]; then
     for p in fg bg; do
         nrow=$(cat ${p}_seqs.txt | wc -l)
         seq 1 $nrow | paste - ${p}_seqs.txt >tmp.tmp
-        gsed "s/^/${p}_/" tmp.tmp >${p}_alphabet_annotations.tab
+        $GSED "s/^/${p}_/" tmp.tmp >${p}_alphabet_annotations.tab
         rm -f tmp.tmp
     done
 else
@@ -657,7 +668,7 @@ for a in $(cut -f 2- annotation_alphabets_header.tab | head -1 | tr '\t' ' '); d
     # of long probes
     streme -verbosity 2 -oc . -alph ${libpath}/alphabets/RNA_${a}_alphabet_MEME -p fg_STREME.fa -n bg_STREME.fa -pvt 0.01 -minw $min_width -maxw $max_width
     # Find number of resulting motifs
-    n=$(ggrep MOTIF streme.txt | wc -l)
+    n=$($GGREP MOTIF streme.txt | wc -l)
     # The last three motifs never meet the pvalue cutoff
     n=$((n - 3))
 
@@ -667,7 +678,7 @@ for a in $(cut -f 2- annotation_alphabets_header.tab | head -1 | tr '\t' ' '); d
         # New cutoff
         logcutoff=$(python ${libpath}/utils/log2.py $cutoff)
         # Get the letters in the alphabet for PFM generation
-        alphabet=$(ggrep "?" streme.txt | head -n 1 | ggrep -o "[A-Za-z]*" | gsed 's/./& /g')
+        alphabet=$($GGREP "?" streme.txt | head -n 1 | $GGREP -o "[A-Za-z]*" | $GSED 's/./& /g')
         # Go through each resulting motif, verify it meets cutoff
         # and create a file to hold the PFM
         # Only retain up to max_motifs (-maxAmotifs) PFMs
@@ -675,19 +686,19 @@ for a in $(cut -f 2- annotation_alphabets_header.tab | head -1 | tr '\t' ' '); d
         max_motifs=$((max_motifs + 1))
         for i in $(seq 1 $n); do
             # Get width and p-value of motif
-            mwidth=$(ggrep -A 1 "MOTIF ${i}-" streme.txt | ggrep -o "w=[ 0-9]*" | ggrep -o [0-9])
+            mwidth=$($GGREP -A 1 "MOTIF ${i}-" streme.txt | $GGREP -o "w=[ 0-9]*" | $GGREP -o [0-9])
             # Check if p-value or e-value available based on STREME version
-            ppresent=$(ggrep -A 1 "MOTIF ${i}-" streme.txt | ggrep -o " P=" | wc -c)
+            ppresent=$($GGREP -A 1 "MOTIF ${i}-" streme.txt | $GGREP -o " P=" | wc -c)
             if [ $ppresent -lt 2 ]; then
                 # E-value available, calculate p-value
                 # Credit for spotting this issue and providing a solution to Mehran Karimzadeh (username: mehrankr)
                 # He noted that MEME-suite states: "The E-value is the p-value multiplied by the number of motifs reported by STREME"
-                evalue=$(ggrep -A 1 "MOTIF ${i}-" streme.txt | ggrep -o "E=[ e.0-9-]*" | ggrep -o "[e\.0-9-]*")
-                nsites=$(ggrep -A 1 "MOTIF ${i}-" streme.txt | ggrep -o "nsites= [0-9]*" | ggrep -o "[0-9]*")
+                evalue=$($GGREP -A 1 "MOTIF ${i}-" streme.txt | $GGREP -o "E=[ e.0-9-]*" | $GGREP -o "[e\.0-9-]*")
+                nsites=$($GGREP -A 1 "MOTIF ${i}-" streme.txt | $GGREP -o "nsites= [0-9]*" | $GGREP -o "[0-9]*")
                 pval=$(awk "BEGIN { print $evalue / $nsites }")
             else
                 # P-value available
-                pval=$(ggrep -A 1 "MOTIF ${i}-" streme.txt | ggrep -o "P=[ e.0-9-]*" | ggrep -o "[e\.0-9-]*")
+                pval=$($GGREP -A 1 "MOTIF ${i}-" streme.txt | $GGREP -o "P=[ e.0-9-]*" | $GGREP -o "[e\.0-9-]*")
             fi
             # Get log pvalue for comparison to cutoff
             logpval=$(python ${libpath}/utils/log2_scinot.py $pval)
@@ -698,7 +709,7 @@ for a in $(cut -f 2- annotation_alphabets_header.tab | head -1 | tr '\t' ' '); d
                     # Get number of lines i.e. positions in motif
                     lines=$((mwidth + 1))
                     # Get PFM from streme file and save it as PFM_i.txt
-                    ggrep -A $lines "MOTIF ${i}-" streme.txt | tail -n $mwidth | gsed 's/^ //' | gsed "1i $alphabet" | tr ' ' '\t' | ${libpath}/utils/transpose_file.sh >PFM-${i}.txt
+                    $GGREP -A $lines "MOTIF ${i}-" streme.txt | tail -n $mwidth | $GSED 's/^ //' | $GSED "1i $alphabet" | tr ' ' '\t' | ${libpath}/utils/transpose_file.sh >PFM-${i}.txt
                 fi
             fi
         done
@@ -731,7 +742,7 @@ for a in $(cut -f 2- annotation_alphabets_header.tab | head -1 | tr '\t' ' '); d
         fg_scores="${a}/fg_LR_PFM_scan_sum_top_${N_score}.tab"
         bg_scores="${a}/bg_LR_PFM_scan_sum_top_${N_score}.tab"
         # Add alphabet name to the start of each PFM (now feature) names
-        cut -f 2- $fg_scores | head -n 1 | gsed "s/^/${a}_/" | gsed "s/\t/\t${a}_/g" >${a}_fg_scores.tmp
+        cut -f 2- $fg_scores | head -n 1 | $GSED "s/^/${a}_/" | $GSED "s/\t/\t${a}_/g" >${a}_fg_scores.tmp
         cut -f 2- $fg_scores | tail -n +2 >>${a}_fg_scores.tmp
         cut -f 2- $bg_scores | tail -n +2 >${a}_bg_scores.tmp
         # Preparation to paste all alphabet scores together
@@ -742,9 +753,9 @@ done
 
 # Combine scores for all alphabets into one file for training
 # Add class column (1 or 0) to differentiate fg and bg sets
-paste $topaste_fg | head -n 1 | gsed 's/^/class\t/' >LR_training_set.tab
-paste $topaste_fg | gsed 's/^/1\t/' | tail -n +2 >>LR_training_set.tab
-paste $topaste_bg | gsed 's/^/0\t/' >>LR_training_set.tab
+paste $topaste_fg | head -n 1 | $GSED 's/^/class\t/' >LR_training_set.tab
+paste $topaste_fg | $GSED 's/^/1\t/' | tail -n +2 >>LR_training_set.tab
+paste $topaste_bg | $GSED 's/^/0\t/' >>LR_training_set.tab
 
 rm -f *.tmp
 
@@ -768,7 +779,7 @@ for a in $(cut -f 2- annotation_alphabets_header.tab | head -1 | tr '\t' ' '); d
         fg_scores="${a}/fg_test_PFM_scan_sum_top_${N_score}.tab"
         bg_scores="${a}/bg_test_PFM_scan_sum_top_${N_score}.tab"
         # Add alphabet name to the start of each PFM (now feature) names
-        cut -f 2- $fg_scores | head -n 1 | gsed "s/^/${a}_/" | gsed "s/\t/\t${a}_/g" >${a}_fg_scores.tmp
+        cut -f 2- $fg_scores | head -n 1 | $GSED "s/^/${a}_/" | $GSED "s/\t/\t${a}_/g" >${a}_fg_scores.tmp
         cut -f 2- $fg_scores | tail -n +2 >>${a}_fg_scores.tmp
         cut -f 2- $bg_scores | tail -n +2 >${a}_bg_scores.tmp
         # Preparation to paste all alphabet scores together
@@ -779,9 +790,9 @@ done
 
 # Combine scores for all alphabets into one file for training
 # Add class column (1 or 0) to differentiate fg and bg sets
-paste $topaste_fg | head -n 1 | gsed 's/^/class\t/' >heldout_data.tab
-paste $topaste_fg | gsed 's/^/1\t/' | tail -n +2 >>heldout_data.tab
-paste $topaste_bg | gsed 's/^/0\t/' >>heldout_data.tab
+paste $topaste_fg | head -n 1 | $GSED 's/^/class\t/' >heldout_data.tab
+paste $topaste_fg | $GSED 's/^/1\t/' | tail -n +2 >>heldout_data.tab
+paste $topaste_bg | $GSED 's/^/0\t/' >>heldout_data.tab
 
 rm -f *.tmp
 

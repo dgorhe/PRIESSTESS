@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# OS detection: Set gsed and ggrep to appropriate commands
+# On macOS, use GNU versions (gsed/ggrep from Homebrew)
+# On Linux, use standard grep/sed (which are GNU versions)
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    GSED=gsed
+    GGREP=ggrep
+else
+    GSED=sed
+    GGREP=grep
+fi
+
 # Establish package installation location
 libpath=`whereis PRIESSTESS | cut -f 2 -d ' '`
 libpath=${libpath%/PRIESSTESS}
@@ -76,7 +87,7 @@ while test $# -gt 0; do
             shift
             if [ ! -f $1 ]; then echo "-fg: file $1 does not exist"; exit 1; fi;
             if [[ $1 =~ \.gz$ ]]; then 
-                n=$(zcat "$1" | ggrep -v "[ACGUN]*" | wc -l)
+                n=$(zcat "$1" | $GGREP -v "[ACGUN]*" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-fg: file should only contain: A,C,G,U,N"
                     exit 1
@@ -87,7 +98,7 @@ while test $# -gt 0; do
                     exit 1
                 fi
             else
-                n=$(ggrep -v "[ACGUN]*" "$1" | wc -l)
+                n=$($GGREP -v "[ACGUN]*" "$1" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-fg: file should only contain: A,C,G,U,N"
                     exit 1
@@ -105,7 +116,7 @@ while test $# -gt 0; do
             shift
             if [ ! -f $1 ]; then echo "-bg: file $1 does not exist"; exit 1; fi;
             if [[ $1 =~ \.gz$ ]]; then 
-                n=$(zcat "$1" | ggrep -v "[ACGUN]*" | wc -l)
+                n=$(zcat "$1" | $GGREP -v "[ACGUN]*" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-bg: file can only contain: A,C,G,U,N"
                     exit 1
@@ -116,7 +127,7 @@ while test $# -gt 0; do
                     exit 1
                 fi
             else
-                n=$(ggrep -v "[ACGUN]*" "$1" | wc -l)
+                n=$($GGREP -v "[ACGUN]*" "$1" | wc -l)
                 if [[ $n -gt 0 ]]; then
                     echo "-bg: file can only contain: A,C,G,U,N"
                     exit 1
@@ -256,15 +267,15 @@ fi
 # Save sequences in files called fg_seqs.txt and bg_seqs.txt
 # Files are assumed to be gzipped or uncompressed
 if [[ $fgfile =~ \.gz$ ]]; then 
-    zcat $fgfile | ggrep -v "N" > ${test_dir}/fg_seqs.txt
+    zcat $fgfile | $GGREP -v "N" > ${test_dir}/fg_seqs.txt
 else
-    ggrep -v "N" $fgfile > ${test_dir}/fg_seqs.txt
+    $GGREP -v "N" $fgfile > ${test_dir}/fg_seqs.txt
 fi;
 
 if [[ $bgfile =~ \.gz$ ]]; then 
-    zcat $bgfile | ggrep -v "N" > ${test_dir}/bg_seqs.txt
+    zcat $bgfile | $GGREP -v "N" > ${test_dir}/bg_seqs.txt
 else
-    ggrep -v "N" $bgfile > ${test_dir}/bg_seqs.txt
+    $GGREP -v "N" $bgfile > ${test_dir}/bg_seqs.txt
 fi;
 
 # Ensure ability to write to directory and that everything is there
@@ -353,7 +364,7 @@ done
 
 # Create directory and fasta files for each alphabet
 for a in `cut -f 2- ../annotation_alphabets_header.tab | tail -n 1 | tr '\t' ' '`; do
-    c=$(cat ../annotation_alphabets_header.tab | tr '\t' '\n' | ggrep -wn "$a" | cut -f 1 -d ":")
+    c=$(cat ../annotation_alphabets_header.tab | tr '\t' '\n' | $GGREP -wn "$a" | cut -f 1 -d ":")
     mkdir $a
     for p in fg bg; do 
         cut -f $c ${p}_alphabet_annotations.tab | \
@@ -363,7 +374,7 @@ for a in `cut -f 2- ../annotation_alphabets_header.tab | tail -n 1 | tr '\t' ' '
 done;
 
 # Get scoreN value
-N_score=$(ggrep "^scoreN" ../PRIESSTESS_arguments.txt | cut -f 2 -d ' ')
+N_score=$($GGREP "^scoreN" ../PRIESSTESS_arguments.txt | cut -f 2 -d ' ')
 
 # Scan probes with PFMs from each alphabet
 for a in `cut -f 2- ../annotation_alphabets_header.tab | head -1 | tr '\t' ' '`; do
@@ -393,7 +404,7 @@ for a in `cut -f 2- ../annotation_alphabets_header.tab | head -1 | tr '\t' ' '`;
         fg_scores="${a}/fg_test_PFM_scan_sum_top_${N_score}.tab"
         bg_scores="${a}/bg_test_PFM_scan_sum_top_${N_score}.tab"
         # Add alphabet name to the start of each PFM (now feature) names
-        cut -f 2- $fg_scores | head -n 1 | gsed "s/^/${a}_/" | gsed "s/\t/\t${a}_/g" > ${a}_fg_scores.tmp
+        cut -f 2- $fg_scores | head -n 1 | $GSED "s/^/${a}_/" | $GSED "s/\t/\t${a}_/g" > ${a}_fg_scores.tmp
         cut -f 2- $fg_scores | tail -n +2 >> ${a}_fg_scores.tmp
         cut -f 2- $bg_scores | tail -n +2 > ${a}_bg_scores.tmp
         # Preparation to paste all alphabet scores together
@@ -404,9 +415,9 @@ done;
 
 # Combine scores for all alphabets into one file for training
 # Add class column (1 or 0) to differentiate fg and bg sets
-paste $topaste_fg | head -n 1 | gsed 's/^/class\t/' > ${test_set_name}_scores.tab
-paste $topaste_fg | gsed 's/^/1\t/' | tail -n +2 >> ${test_set_name}_scores.tab
-paste $topaste_bg | gsed 's/^/0\t/' >> ${test_set_name}_scores.tab
+paste $topaste_fg | head -n 1 | $GSED 's/^/class\t/' > ${test_set_name}_scores.tab
+paste $topaste_fg | $GSED 's/^/1\t/' | tail -n +2 >> ${test_set_name}_scores.tab
+paste $topaste_bg | $GSED 's/^/0\t/' >> ${test_set_name}_scores.tab
 
 rm -f *.tmp
 

@@ -2,6 +2,17 @@
 
 set -euxo pipefail
 
+# OS detection: Set gsed and ggrep to appropriate commands
+# On macOS, use GNU versions (gsed/ggrep from Homebrew)
+# On Linux, use standard grep/sed (which are GNU versions)
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    GSED=gsed
+    GGREP=ggrep
+else
+    GSED=sed
+    GGREP=grep
+fi
+
 # This script takes a file of sequences, one per line, not a fasta!
 # The file must be uncompressed
 # RNAfold is used to get the centroid structure for each sequence
@@ -41,7 +52,7 @@ mv "${currdir}/${prefix}_RNAfold_output.txt" .
 rm -rf "$currdir"
 
 # Extract centroid structures
-gsed -n '4~5p' "${prefix}_RNAfold_output.txt" | ggrep -o "^[.)(]*" >"${prefix}_structures.tab"
+$GSED -n '4~5p' "${prefix}_RNAfold_output.txt" | $GGREP -o "^[.)(]*" >"${prefix}_structures.tab"
 
 # Annotate dot bracket structures to 7-letter structural alphabet
 # And compile information into: prefix_centroid_struct_annotations.tab
