@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -euo pipefail
 
 # OS detection: Set gsed and ggrep to appropriate commands
 # On macOS, use GNU versions (gsed/ggrep from Homebrew)
