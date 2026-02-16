@@ -1,3 +1,26 @@
+# Output directories
+*_output/**
+outputs/
+log.txt
+
+# Data directories (BAM, BED, sequence files)
+bams/
+beds/
+sequences/
+
+# Individual data files (backup patterns in case files are in root)
+*.bam
+*.bai
+*.bed
+*.lengths
+*.foreground.txt
+*.background.txt
+*.flanking.bed
+*.annotated.tab
+*.structures.tab
+*.centroid_struct_annotations.tab
+*.alphabet_annotations.tab
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import seaborn as sns
+import pandas as pd
+import logomaker
 from pathlib import Path
 
 # Color schemes for different alphabets (matching R script colors)
@@ -150,15 +152,21 @@ def split_seq_struct_pfm(pfm_matrix, symbols, alphabet):
 
 
 def plot_logo(pfm_matrix, symbols, alphabet, ax, title=None, method="bits"):
-    """Create a sequence logo plot."""
+    """Create a sequence logo plot using logomaker."""
     ic, pfm_normalized = calculate_information_content(pfm_matrix)
 
+    # Calculate heights
+    # logomaker expects: rows=positions, columns=symbols
+    # Current format: rows=symbols, columns=positions, so transpose
     if method == "bits":
-        max_height = np.log2(len(symbols))
+        # Scale normalized frequencies by information content
+        # ic is shape (n_positions,), pfm_normalized.T is (n_positions, n_symbols)
+        heights = pfm_normalized.T * ic[:, np.newaxis]
     else:  # probability
-        max_height = 1.0
+        heights = pfm_normalized.T
 
-    n_positions = pfm_matrix.shape[1]
+    # Create DataFrame (rows=positions, columns=symbols)
+    logo_df = pd.DataFrame(heights, columns=symbols)
 
     # Get color scheme
     if alphabet.startswith("seq-struct"):
@@ -167,21 +175,16 @@ def plot_logo(pfm_matrix, symbols, alphabet, ax, title=None, method="bits"):
     else:
         colors = COLOR_SCHEMES.get(alphabet, {})
 
-    # Plot each position
-    x_positions = np.arange(n_positions)
-    bottom = np.zeros(n_positions)
+    # Create logo using logomaker
+    logomaker.Logo(logo_df,
+                   ax=ax,
+                   color_scheme=colors,
+                   font_name='Arial')
 
-    for i, symbol in enumerate(symbols):
-        heights = pfm_normalized[i, :] * ic if method == "bits" else pfm_normalized[i, :]
-        color = colors.get(symbol, "#000000")
-
-        ax.bar(x_positions, heights, bottom=bottom, width=0.8,
-               color=color, edgecolor='white', linewidth=0.5, label=symbol)
-        bottom += heights
-
+    # Style the plot
+    n_positions = pfm_matrix.shape[1]
     ax.set_xlim(-0.5, n_positions - 0.5)
-    ax.set_ylim(0, max_height * 1.1)
-    ax.set_xticks(x_positions)
+    ax.set_xticks(range(n_positions))
     ax.set_xticklabels(range(1, n_positions + 1))
     ax.set_xlabel("Position", fontsize=10)
     if method == "bits":
@@ -195,10 +198,13 @@ def plot_logo(pfm_matrix, symbols, alphabet, ax, title=None, method="bits"):
     ax.grid(axis='y', alpha=0.3, linestyle='--')
 
 
-def create_logo_plots(output_dir, priesstess_output_dir):
+def create_logo_plots(output_dir, priesstess_output_dir, target_name=None):
     """Create logo plots for all PFM files."""
     priesstess_path = Path(priesstess_output_dir)
-    logos_dir = Path(output_dir) / "logos"
+    if target_name:
+        logos_dir = Path(output_dir) / "logos" / target_name
+    else:
+        logos_dir = Path(output_dir) / "logos"
     logos_dir.mkdir(parents=True, exist_ok=True)
 
     # Find all alphabet directories
@@ -255,7 +261,7 @@ def create_logo_plots(output_dir, priesstess_output_dir):
     print(f"Logo plots saved to {logos_dir}")
 
 
-def create_weight_barplot(output_dir, weights_file):
+def create_weight_barplot(output_dir, weights_file, target_name=None):
     """Create bar plot of model weights grouped by alphabet type."""
     # Read weights file
     weights_data = []
@@ -333,7 +339,7 @@ def create_weight_barplot(output_dir, weights_file):
 
     # Create bar plot
     x_positions = np.arange(len(all_features))
-    bars = ax.bar(x_positions, all_weights, color=all_colors, edgecolor='black', linewidth=0.5, alpha=0.8)
+    ax.bar(x_positions, all_weights, color=all_colors, edgecolor='black', linewidth=0.5, alpha=0.8)
 
     # Add group separators
     current_group = None
@@ -354,7 +360,7 @@ def create_weight_barplot(output_dir, weights_file):
     ax.set_ylabel("Model Weight", fontsize=12, fontweight='bold')
     ax.set_title("PRIESSTESS Model Weights by Alphabet Type", fontsize=14, fontweight='bold')
     ax.set_xticks(x_positions)
-    
+
     # Improve label readability - rotate and adjust font size based on number of features
     if len(all_features) > 20:
         rotation = 90
@@ -363,7 +369,7 @@ def create_weight_barplot(output_dir, weights_file):
         rotation = 45
         fontsize = 8
     ax.set_xticklabels(all_features, rotation=rotation, ha='right', fontsize=fontsize)
-    
+
     # Set y-axis to start at 0
     ax.set_ylim(bottom=0)
     ax.grid(axis='y', alpha=0.3, linestyle='--')
@@ -379,7 +385,11 @@ def create_weight_barplot(output_dir, weights_file):
     plt.tight_layout()
 
     # Save figure
-    output_file = Path(output_dir) / "model_weights_barplot.png"
+    if target_name:
+        filename = f"{target_name}_model_weights_barplot.png"
+    else:
+        filename = "model_weights_barplot.png"
+    output_file = Path(output_dir) / filename
     plt.savefig(output_file, dpi=150, bbox_inches='tight')
     plt.close()
 
@@ -432,16 +442,39 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Extract target name from priesstess_output_dir path
+    # Path format: e.g., "outputs/RBFOX2/PRIESSTESS_output" or "outputs/RBFOX2"
+    target_name = None
+    path_parts = priesstess_path.parts
+    if path_parts:
+        # Check if path contains "outputs" directory (new format)
+        if "outputs" in path_parts:
+            # Find the directory after "outputs" - that's the target name
+            outputs_index = path_parts.index("outputs")
+            if outputs_index + 1 < len(path_parts):
+                target_name = path_parts[outputs_index + 1]
+        else:
+            # Fallback: Try to extract target name from old format "TARGET_output"
+            for part in reversed(path_parts):
+                if part.endswith("_output"):
+                    target_name = part.replace("_output", "")
+                    break
+            # If no pattern found, use the last directory name
+            if not target_name and path_parts:
+                target_name = path_parts[-1]
+
     print("Creating visualizations...")
     print(f"Output directory: {output_dir}")
     print(f"PRIESSTESS output: {priesstess_path}")
+    if target_name:
+        print(f"Target name: {target_name}")
 
     # Create logo plots
-    create_logo_plots(output_dir, priesstess_path)
+    create_logo_plots(output_dir, priesstess_path, target_name)
 
     # Create weight bar plot
     if weights_file:
-        create_weight_barplot(output_dir, weights_file)
+        create_weight_barplot(output_dir, weights_file, target_name)
 
     print("Visualization complete!")
 
