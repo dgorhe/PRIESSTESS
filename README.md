@@ -286,29 +286,78 @@ pytest -m "not slow"
 
 Test reports will be generated in `htmlcov/index.html`.
 
-### Code Quality
+### Linting and Formatting
 
-**Format code:**
+The project uses consistent linting and formatting for Python and shell scripts. All tools share a **120-character line length** limit.
 
-```bash
-black bin/
-isort bin/
-```
-
-**Lint code:**
+**Run via Makefile (recommended):**
 
 ```bash
-flake8 bin/
-shellcheck PRIESSTESS PRIESSTESS_scan bin/*.sh
+# Lint Python (flake8) and shell (shellcheck)
+make lint
+
+# Format Python (black, isort) and shell (shfmt)
+make format
 ```
+
+**Individual targets:**
+
+```bash
+make lint-python   # flake8 on bin/ and tests/
+make lint-shell    # shellcheck on shell scripts
+make format-python # black + isort on bin/ and tests/
+make format-shell  # shfmt on shell scripts
+```
+
+**Tools and config files:**
+
+| Tool | Purpose | Config |
+|------|---------|--------|
+| black | Python formatter | `pyproject.toml` |
+| isort | Python import sorter | `pyproject.toml` |
+| flake8 | Python linter | `.flake8` |
+| shellcheck | Shell linter | — |
+| shfmt | Shell formatter | `.editorconfig` |
+
+### Editor Setup
+
+The project includes config files so editors can match `make lint` and `make format`.
+
+**VS Code / Cursor**
+
+Workspace settings in `.vscode/settings.json` configure:
+
+- **Python**: black (line-length 120), isort, flake8
+- **Shell**: shfmt via the Shell Format extension
+
+If your editor does not pick up the workspace settings, install:
+
+- [Python](https://marketplace.visualstudio.com/items?itemName=ms-python.python) (or built-in)
+- [Shell Format](https://marketplace.visualstudio.com/items?itemName=foxundermoon.shell-format) (uses shfmt)
+
+**EditorConfig (many editors)**
+
+`.editorconfig` defines:
+
+- `indent_style = space`, `indent_size = 4`
+- `max_line_length = 120` for Python
+- Shell formatting options for shfmt
+
+Editors that support EditorConfig (e.g. VS Code, JetBrains IDEs, Sublime Text, Vim/Neovim with plugins) will use these settings automatically. Install the [EditorConfig extension](https://editorconfig.org/) if needed.
+
+**Other editors**
+
+- **PyCharm / IntelliJ**: Use black and isort via External Tools or the Black/Isort plugins; set line length to 120.
+- **Vim/Neovim**: Use [ALE](https://github.com/dense-analysis/ale) or [coc.nvim](https://github.com/neoclide/coc.nvim) with black, isort, flake8, shellcheck, and shfmt.
+- **Emacs**: Use `blacken`, `py-isort`, `flycheck` (flake8), and `shfmt` packages.
 
 ### Contributing
 
 Before submitting pull requests:
 
 1. Ensure all tests pass (`pytest`)
-2. Format code with black/isort
-3. Verify linting passes (flake8, shellcheck)
+2. Run `make format` to format code
+3. Run `make lint` to verify linting passes
 4. Update tests if adding new features
 
 ## Troubleshooting

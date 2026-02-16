@@ -82,10 +82,7 @@ if __name__ == "__main__":
         parser.error("All arguments (-a, -f, -p, -n) are required")
 
     if args.alph not in alphabets:
-        sys.stderr.write(
-            f"Error: Invalid alphabet '{args.alph}'. "
-            f"Valid options: {', '.join(alphabets.keys())}\n"
-        )
+        sys.stderr.write(f"Error: Invalid alphabet '{args.alph}'. " f"Valid options: {', '.join(alphabets.keys())}\n")
         sys.exit(1)
 
     if not os.path.exists(args.fasta):

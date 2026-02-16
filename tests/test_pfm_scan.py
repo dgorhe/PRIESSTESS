@@ -1,10 +1,9 @@
 """Tests for PFM_scan.py."""
+
 import os
 import subprocess
 import sys
 from pathlib import Path
-
-import pytest
 
 BIN_DIR = Path(__file__).parent.parent / "bin"
 

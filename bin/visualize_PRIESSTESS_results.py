@@ -4,15 +4,16 @@ Visualization script for PRIESSTESS results.
 Creates logo plots for all motifs and bar graphs for model weights.
 """
 
-import sys
 import argparse
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import seaborn as sns
-import pandas as pd
-import logomaker
+import sys
 from pathlib import Path
+
+import logomaker
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 # Color schemes for different alphabets (matching R script colors)
 COLOR_SCHEMES = {
@@ -97,14 +98,14 @@ SEQ_STRUCT_MAPPING = {
 
 def read_pfm(pfm_file):
     """Read a PFM file and return as numpy array with row labels."""
-    with open(pfm_file, 'r') as f:
+    with open(pfm_file, "r") as f:
         lines = f.readlines()
 
     symbols = []
     data = []
     for line in lines:
         if line.strip():
-            parts = line.strip().split('\t')
+            parts = line.strip().split("\t")
             symbols.append(parts[0])
             data.append([float(x) for x in parts[1:]])
 
@@ -139,7 +140,7 @@ def split_seq_struct_pfm(pfm_matrix, symbols, alphabet):
     for i, seq_sym in enumerate(seq_symbols):
         for j in range(pfm_matrix.shape[1]):
             # Sum over all struct symbols for this seq symbol
-            seq_pfm[i, j] = np.sum(pfm_matrix[i * n_struct:(i + 1) * n_struct, j])
+            seq_pfm[i, j] = np.sum(pfm_matrix[i * n_struct : (i + 1) * n_struct, j])
 
     # Structure PFM
     struct_pfm = np.zeros((n_struct, pfm_matrix.shape[1]))
@@ -176,10 +177,7 @@ def plot_logo(pfm_matrix, symbols, alphabet, ax, title=None, method="bits"):
         colors = COLOR_SCHEMES.get(alphabet, {})
 
     # Create logo using logomaker
-    logomaker.Logo(logo_df,
-                   ax=ax,
-                   color_scheme=colors,
-                   font_name='Arial')
+    logomaker.Logo(logo_df, ax=ax, color_scheme=colors, font_name="Arial")
 
     # Style the plot
     n_positions = pfm_matrix.shape[1]
@@ -192,10 +190,10 @@ def plot_logo(pfm_matrix, symbols, alphabet, ax, title=None, method="bits"):
     else:
         ax.set_ylabel("Probability", fontsize=10)
     if title:
-        ax.set_title(title, fontsize=11, fontweight='bold')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.grid(axis='y', alpha=0.3, linestyle='--')
+        ax.set_title(title, fontsize=11, fontweight="bold")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.grid(axis="y", alpha=0.3, linestyle="--")
 
 
 def create_logo_plots(output_dir, priesstess_output_dir, target_name=None):
@@ -208,8 +206,7 @@ def create_logo_plots(output_dir, priesstess_output_dir, target_name=None):
     logos_dir.mkdir(parents=True, exist_ok=True)
 
     # Find all alphabet directories
-    alphabet_dirs = [d for d in priesstess_path.iterdir()
-                     if d.is_dir() and not d.name.startswith('.')]
+    alphabet_dirs = [d for d in priesstess_path.iterdir() if d.is_dir() and not d.name.startswith(".")]
 
     for alphabet_dir in alphabet_dirs:
         alphabet_name = alphabet_dir.name
@@ -227,31 +224,48 @@ def create_logo_plots(output_dir, priesstess_output_dir, target_name=None):
 
                 # Handle seq-struct alphabets
                 if alphabet_name.startswith("seq-struct"):
-                    seq_pfm, seq_symbols, struct_pfm, struct_symbols = \
-                        split_seq_struct_pfm(pfm_matrix, symbols, alphabet_name)
+                    seq_pfm, seq_symbols, struct_pfm, struct_symbols = split_seq_struct_pfm(
+                        pfm_matrix, symbols, alphabet_name
+                    )
 
                     # Create figure with two subplots
-                    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(
-                        max(6, pfm_matrix.shape[1] * 0.8), 4))
+                    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(max(6, pfm_matrix.shape[1] * 0.8), 4))
 
-                    plot_logo(seq_pfm, seq_symbols, "seq-4", ax1,
-                              f"{alphabet_name}_{motif_id} - Sequence", method="bits")
-                    plot_logo(struct_pfm, struct_symbols,
-                              SEQ_STRUCT_MAPPING[alphabet_name], ax2,
-                              f"{alphabet_name}_{motif_id} - Structure", method="bits")
+                    plot_logo(
+                        seq_pfm,
+                        seq_symbols,
+                        "seq-4",
+                        ax1,
+                        f"{alphabet_name}_{motif_id} - Sequence",
+                        method="bits",
+                    )
+                    plot_logo(
+                        struct_pfm,
+                        struct_symbols,
+                        SEQ_STRUCT_MAPPING[alphabet_name],
+                        ax2,
+                        f"{alphabet_name}_{motif_id} - Structure",
+                        method="bits",
+                    )
 
                     plt.tight_layout()
                     output_file = logos_dir / f"{alphabet_name}_{motif_id}_logo.png"
-                    plt.savefig(output_file, dpi=150, bbox_inches='tight')
+                    plt.savefig(output_file, dpi=150, bbox_inches="tight")
                     plt.close()
                 else:
                     # Single logo plot
                     fig, ax = plt.subplots(figsize=(max(6, pfm_matrix.shape[1] * 0.8), 3))
-                    plot_logo(pfm_matrix, symbols, alphabet_name, ax,
-                              f"{alphabet_name}_{motif_id}", method="bits")
+                    plot_logo(
+                        pfm_matrix,
+                        symbols,
+                        alphabet_name,
+                        ax,
+                        f"{alphabet_name}_{motif_id}",
+                        method="bits",
+                    )
                     plt.tight_layout()
                     output_file = logos_dir / f"{alphabet_name}_{motif_id}_logo.png"
-                    plt.savefig(output_file, dpi=150, bbox_inches='tight')
+                    plt.savefig(output_file, dpi=150, bbox_inches="tight")
                     plt.close()
 
             except Exception as e:
@@ -265,10 +279,10 @@ def create_weight_barplot(output_dir, weights_file, target_name=None):
     """Create bar plot of model weights grouped by alphabet type."""
     # Read weights file
     weights_data = []
-    with open(weights_file, 'r') as f:
+    with open(weights_file, "r") as f:
         for line in f:
             if line.strip():
-                parts = line.strip().split('\t')
+                parts = line.strip().split("\t")
                 if len(parts) >= 2:
                     feature = parts[0]
                     weight = float(parts[1])
@@ -281,14 +295,9 @@ def create_weight_barplot(output_dir, weights_file, target_name=None):
     # Parse alphabet and PFM ID
     parsed_data = []
     for feature, weight in weights_data:
-        if '_' in feature:
-            alphabet, pfm_id = feature.split('_', 1)
-            parsed_data.append({
-                'alphabet': alphabet,
-                'pfm_id': pfm_id,
-                'feature': feature,
-                'weight': weight
-            })
+        if "_" in feature:
+            alphabet, pfm_id = feature.split("_", 1)
+            parsed_data.append({"alphabet": alphabet, "pfm_id": pfm_id, "feature": feature, "weight": weight})
 
     if not parsed_data:
         print("Could not parse weights data", file=sys.stderr)
@@ -297,7 +306,7 @@ def create_weight_barplot(output_dir, weights_file, target_name=None):
     # Group by alphabet type
     alphabet_groups = {}
     for item in parsed_data:
-        alphabet = item['alphabet']
+        alphabet = item["alphabet"]
         # Determine group
         if alphabet == "seq-4":
             group = "Sequence-only (seq-4)"
@@ -326,10 +335,10 @@ def create_weight_barplot(output_dir, weights_file, target_name=None):
     # Sort groups and within groups
     sorted_groups = sorted(alphabet_groups.keys())
     for group in sorted_groups:
-        items = sorted(alphabet_groups[group], key=lambda x: x['weight'], reverse=True)
+        items = sorted(alphabet_groups[group], key=lambda x: x["weight"], reverse=True)
         for item in items:
-            all_features.append(item['feature'])
-            all_weights.append(item['weight'])
+            all_features.append(item["feature"])
+            all_weights.append(item["weight"])
             all_groups.append(group)
             all_colors.append(group_colors[group])
 
@@ -339,7 +348,7 @@ def create_weight_barplot(output_dir, weights_file, target_name=None):
 
     # Create bar plot
     x_positions = np.arange(len(all_features))
-    ax.bar(x_positions, all_weights, color=all_colors, edgecolor='black', linewidth=0.5, alpha=0.8)
+    ax.bar(x_positions, all_weights, color=all_colors, edgecolor="black", linewidth=0.5, alpha=0.8)
 
     # Add group separators
     current_group = None
@@ -353,12 +362,12 @@ def create_weight_barplot(output_dir, weights_file, target_name=None):
 
     # Draw separator lines
     for pos in separator_positions:
-        ax.axvline(x=pos, color='gray', linestyle='--', linewidth=2, alpha=0.7)
+        ax.axvline(x=pos, color="gray", linestyle="--", linewidth=2, alpha=0.7)
 
     # Customize plot
-    ax.set_xlabel("Motif Feature", fontsize=12, fontweight='bold')
-    ax.set_ylabel("Model Weight", fontsize=12, fontweight='bold')
-    ax.set_title("PRIESSTESS Model Weights by Alphabet Type", fontsize=14, fontweight='bold')
+    ax.set_xlabel("Motif Feature", fontsize=12, fontweight="bold")
+    ax.set_ylabel("Model Weight", fontsize=12, fontweight="bold")
+    ax.set_title("PRIESSTESS Model Weights by Alphabet Type", fontsize=14, fontweight="bold")
     ax.set_xticks(x_positions)
 
     # Improve label readability - rotate and adjust font size based on number of features
@@ -368,19 +377,19 @@ def create_weight_barplot(output_dir, weights_file, target_name=None):
     else:
         rotation = 45
         fontsize = 8
-    ax.set_xticklabels(all_features, rotation=rotation, ha='right', fontsize=fontsize)
+    ax.set_xticklabels(all_features, rotation=rotation, ha="right", fontsize=fontsize)
 
     # Set y-axis to start at 0
     ax.set_ylim(bottom=0)
-    ax.grid(axis='y', alpha=0.3, linestyle='--')
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
+    ax.grid(axis="y", alpha=0.3, linestyle="--")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
 
     # Create legend
-    legend_elements = [mpatches.Patch(facecolor=group_colors[group],
-                                      edgecolor='black', label=group)
-                       for group in sorted_groups]
-    ax.legend(handles=legend_elements, loc='upper right', fontsize=10)
+    legend_elements = [
+        mpatches.Patch(facecolor=group_colors[group], edgecolor="black", label=group) for group in sorted_groups
+    ]
+    ax.legend(handles=legend_elements, loc="upper right", fontsize=10)
 
     plt.tight_layout()
 
@@ -390,7 +399,7 @@ def create_weight_barplot(output_dir, weights_file, target_name=None):
     else:
         filename = "model_weights_barplot.png"
     output_file = Path(output_dir) / filename
-    plt.savefig(output_file, dpi=150, bbox_inches='tight')
+    plt.savefig(output_file, dpi=150, bbox_inches="tight")
     plt.close()
 
     print(f"Weight bar plot saved to {output_file}")
@@ -403,19 +412,22 @@ def main():
     parser.add_argument(
         "priesstess_output_dir",
         type=str,
-        help="Path to PRIESSTESS output directory (e.g., RBFOX2_output/PRIESSTESS_output)"
+        help="Path to PRIESSTESS output directory (e.g., RBFOX2_output/PRIESSTESS_output)",
     )
     parser.add_argument(
         "--output-dir",
         type=str,
         default="figures",
-        help="Output directory for figures (default: figures)"
+        help="Output directory for figures (default: figures)",
     )
     parser.add_argument(
         "--weights-file",
         type=str,
         default=None,
-        help="Path to PRIESSTESS_model_weights.tab file (default: <priesstess_output_dir>/PRIESSTESS_model_weights.tab)"
+        help=(
+            "Path to PRIESSTESS_model_weights.tab file "
+            "(default: <priesstess_output_dir>/PRIESSTESS_model_weights.tab)"
+        ),
     )
 
     args = parser.parse_args()
@@ -424,7 +436,9 @@ def main():
     priesstess_path = Path(args.priesstess_output_dir)
     if not priesstess_path.exists():
         print(
-            f"Error: PRIESSTESS output directory '{args.priesstess_output_dir}' not found", file=sys.stderr)
+            f"Error: PRIESSTESS output directory '{args.priesstess_output_dir}' not found",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     # Set default weights file if not provided
@@ -434,8 +448,7 @@ def main():
         weights_file = Path(args.weights_file)
 
     if not weights_file.exists():
-        print(
-            f"Warning: Weights file '{weights_file}' not found. Skipping bar plot.", file=sys.stderr)
+        print(f"Warning: Weights file '{weights_file}' not found. Skipping bar plot.", file=sys.stderr)
         weights_file = None
 
     # Create output directory

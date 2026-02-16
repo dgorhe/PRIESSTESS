@@ -41,9 +41,7 @@ Ytest = testset[:, 0]
 
 # Validate data shapes match
 if Xtrain.shape[1] != Xtest.shape[1]:
-    sys.stderr.write(
-        f"Error: Feature count mismatch (train: {Xtrain.shape[1]}, test: {Xtest.shape[1]})\n"
-    )
+    sys.stderr.write(f"Error: Feature count mismatch (train: {Xtrain.shape[1]}, test: {Xtest.shape[1]})\n")
     sys.exit(1)
 
 # Scale test values to the same scale as training values

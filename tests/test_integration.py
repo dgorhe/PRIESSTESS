@@ -1,4 +1,5 @@
 """Integration tests for PRIESSTESS scripts."""
+
 import os
 import subprocess
 import sys

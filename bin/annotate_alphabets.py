@@ -24,9 +24,7 @@ import sys
 # alphabet to 28-letter alphabet
 letters_28 = list("ABCDEFGHIJKLMNOPQRSTUVWXYZab")
 
-seq_struct_28_combos = [
-    c1 + c2 for c1 in ["A", "C", "G", "U"] for c2 in ["B", "E", "H", "L", "M", "R", "T"]
-]
+seq_struct_28_combos = [c1 + c2 for c1 in ["A", "C", "G", "U"] for c2 in ["B", "E", "H", "L", "M", "R", "T"]]
 combo2letter_seq_struct_28 = dict()
 for i in range(len(seq_struct_28_combos)):
     combo2letter_seq_struct_28[seq_struct_28_combos[i]] = letters_28[i]
@@ -102,8 +100,7 @@ if __name__ == "__main__":
 
             if len(seq_4) != len(struct_7):
                 sys.stderr.write(
-                    f"Error: Line {i + 1}: "
-                    f"sequence length ({len(seq_4)}) != structure length ({len(struct_7)})\n"
+                    f"Error: Line {i + 1}: " f"sequence length ({len(seq_4)}) != structure length ({len(struct_7)})\n"
                 )
                 sys.exit(1)
 

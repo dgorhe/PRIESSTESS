@@ -17,5 +17,4 @@ END {
         }
         print str
     }
-}' $f
-
+}' "$f"

@@ -1,11 +1,11 @@
 """Tests for test_PRIESSTESS_model.py script."""
+
 import os
 import subprocess
 import sys
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 BIN_DIR = Path(__file__).parent.parent / "bin"
 
@@ -32,9 +32,7 @@ class TestPRIESTESSModelTesting:
         assert result.returncode == 0
 
         # Check output file was created
-        output_file = os.path.join(
-            temp_dir, "test_test_model_ON_test_data_auroc.tab"
-        )
+        output_file = os.path.join(temp_dir, "test_test_model_ON_test_data_auroc.tab")
         assert os.path.exists(output_file)
 
         # Read AUROC value

@@ -1,4 +1,5 @@
 """Tests for utility scripts log2.py and log2_scinot.py."""
+
 import subprocess
 import sys
 from pathlib import Path

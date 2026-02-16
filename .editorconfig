@@ -1,0 +1,13 @@
+# Align with make format / make lint (line-length 120, black, isort, flake8, shfmt)
+root = true
+
+[*.py]
+indent_style = space
+indent_size = 4
+max_line_length = 120
+
+[*.{sh,bash}]
+indent_style = space
+indent_size = 4
+# shfmt reads these when no -i/-s flags are passed
+simplify = true

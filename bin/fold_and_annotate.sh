@@ -9,8 +9,8 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
     GSED=gsed
     GGREP=ggrep
 else
-    GSED=sed
-    GGREP=grep
+    GSED=$(sed)
+    GGREP=$(grep)
 fi
 
 # This script takes a file of sequences, one per line, not a fasta!
@@ -35,13 +35,13 @@ cat "$file" >"${currdir}/${prefix}.tab"
 # overwhelming the system with the output RNAfold produces
 cd "$currdir"
 split -l 50000 "${prefix}.tab" x
-N=$(wc -l < "${prefix}.tab")
+N=$(wc -l <"${prefix}.tab")
 counter=0
 echo "Folding $N $prefix probes"
 for x in x*; do
     RNAfold -p -T "$temp" --noPS <"$x" >>"${prefix}_RNAfold_output.txt"
     rm -rf ./*.ps 2>/dev/null || true
-    n=$(wc -l < "$x")
+    n=$(wc -l <"$x")
     counter=$((counter + n))
     echo "$counter probes of $N have been folded"
 done
